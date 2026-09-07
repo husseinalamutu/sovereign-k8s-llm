@@ -1,0 +1,82 @@
+# 03-deployment-fixed.yaml
+# ==============================================================================
+# PRODUCTION REMEDIATED DEPLOYMENT
+#
+# Fix Summary:
+# 1. Right-Sized Memory Budget:
+#    - requests.memory: 2500Mi (guarantees baseline node capacity for model weights)
+#    - limits.memory: 4500Mi (leaves ample headroom for KV cache growth up to 2048 ctx)
+# 2. Cold-Start Probe Tuning:
+#    - readinessProbe: initialDelaySeconds: 20, periodSeconds: 5, failureThreshold: 10
+#      Allows up to 70s for mmap and weight initialization before marking pod Unready.
+#    - livenessProbe: initialDelaySeconds: 60, avoiding false-positive container restarts.
+# ==============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sovereign-llm
+  namespace: sovereign-ai
+  labels:
+    app: sovereign-llm
+    stage: production-fixed
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # Preferred for constrained nodes to prevent concurrent weight allocation
+  selector:
+    matchLabels:
+      app: sovereign-llm
+  template:
+    metadata:
+      labels:
+        app: sovereign-llm
+    spec:
+      containers:
+      - name: llama-server
+        image: ghcr.io/ggerganov/llama.cpp:server
+        args:
+          - "--hf-repo"
+          - "$(HF_REPO)"
+          - "--hf-file"
+          - "$(HF_FILE)"
+          - "-c"
+          - "$(CTX_SIZE)"
+          - "-t"
+          - "$(N_THREADS)"
+          - "--port"
+          - "$(PORT)"
+          - "--host"
+          - "0.0.0.0"
+        envFrom:
+        - configMapRef:
+            name: llama-server-config
+        ports:
+        - containerPort: 8080
+          name: http
+        # SIZED FOR STABILITY UNDER LOAD
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2500Mi"
+          limits:
+            cpu: "2000m"
+            memory: "4500Mi"
+        # TUNED READINESS PROBE: Accommodates slow cold starts without false-killing
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 10
+        # SEPARATE LIVENESS PROBE: Generous startup window
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3

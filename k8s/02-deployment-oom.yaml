@@ -1,0 +1,68 @@
+# 02-deployment-oom.yaml
+# ==============================================================================
+# INTENTIONAL FAILURE DEMO MANIFEST (FOR KUBECON TALK)
+#
+# Root Cause:
+# 1. Memory Limit Undersized: The Q4_K_M model requires ~2.1 GB of RAM just for
+#    weights, plus allocator overhead. Setting limits.memory to 2000Mi breaches
+#    the cgroup v2 limit during mmap/inference, causing the kernel OOM killer
+#    to terminate the container with Exit Code 137 (OOMKilled).
+# 2. Premature Readiness Probe: initialDelaySeconds: 2 with failureThreshold: 2
+#    times out in 8s. Since loading a 2.1 GB model on standard node storage
+#    takes 18-25s, the container gets killed by the probe before it can ever be ready.
+# ==============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sovereign-llm-failing
+  namespace: sovereign-ai
+  labels:
+    app: sovereign-llm
+    stage: intentional-failure-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sovereign-llm
+  template:
+    metadata:
+      labels:
+        app: sovereign-llm
+    spec:
+      containers:
+      - name: llama-server
+        image: ghcr.io/ggerganov/llama.cpp:server
+        args:
+          - "--hf-repo"
+          - "husseinalamutu/tiny-aya-earth-yoruba-gguf"
+          - "--hf-file"
+          - "tiny-aya-earth-yoruba-Q4_K_M.gguf"
+          - "-c"
+          - "2048"
+          - "-t"
+          - "4"
+          - "--port"
+          - "8080"
+          - "--host"
+          - "0.0.0.0"
+        ports:
+        - containerPort: 8080
+          name: http
+        # FLAW 1: Memory limit too small (2000Mi < 2.1GB model + overhead)
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1000Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2000Mi"
+        # FLAW 2: Probe fires before cold start weight loading completes
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 3
+          timeoutSeconds: 1
+          failureThreshold: 2

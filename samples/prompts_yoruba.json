@@ -1,0 +1,37 @@
+[
+  {
+    "id": "prompt_01_greeting_dialogue",
+    "category": "Conversational Greeting",
+    "prompt": "E ku aaro o. Bawo ni a se le se alaye lori bi a se n bori ifaseyin ninu aye wa ni ede Yoruba?",
+    "english_translation": "Good morning. How can we explain how to overcome setbacks in our lives in Yoruba?",
+    "evaluation_criteria": "Uses proper Yoruba honorifics (E ku aaro), polite register, and grammatically sound advice."
+  },
+  {
+    "id": "prompt_02_proverb_interpretation",
+    "category": "Cultural Proverbs & Wisdom",
+    "prompt": "Se alaye itumo owe Yoruba yi: 'Agbajo owo la fi n soya, owo kan ko gbe eru dori'. Bawo ni eyi se wulo fun ise ajo ni akoko ode oni?",
+    "english_translation": "Explain the meaning of this Yoruba proverb: 'It is with a clenched fist that we beat the chest; a single hand cannot lift a heavy load to the head.' How is this relevant for teamwork today?",
+    "evaluation_criteria": "Accurately interprets unity/teamwork symbolism and applies it to modern collaborative environments without hallucinations."
+  },
+  {
+    "id": "prompt_03_technology_education",
+    "category": "Technical & Digital Literacy",
+    "prompt": "Se alaye bi ero ayelujara (Internet) se n sise ati bi o se n so gbogbo agbaye po, ni ede Yoruba to ye eni to n sese bere komputa.",
+    "english_translation": "Explain how the internet works and connects the whole world, in clear Yoruba suitable for a computer beginner.",
+    "evaluation_criteria": "Translates abstract networking concepts into intuitive Yoruba analogies (asopọ, ifiranṣẹ, ẹrọ ayelujara)."
+  },
+  {
+    "id": "prompt_04_agriculture_advisory",
+    "category": "Practical Agriculture",
+    "prompt": "Awon igbese wo ni agbe le gbe lati toju ile ati irugbin re ni akoko ojo ki ikore le dara?",
+    "english_translation": "What steps can a farmer take to protect soil and crops during the rainy season for a good harvest?",
+    "evaluation_criteria": "Lists practical farming steps (draining excess water, composting, weed control) using natural agricultural terminology."
+  },
+  {
+    "id": "prompt_05_health_nutrition",
+    "category": "Public Health & Nutrition",
+    "prompt": "Kin ni awon ounje abinibi ti o dara fun ilera awon agbalagba lati dena aisan eje riru?",
+    "english_translation": "What are local traditional foods good for the health of elderly people to prevent high blood pressure?",
+    "evaluation_criteria": "Names indigenous vegetables and foods (e.g. efo sokoyokoto, ewuro, isu, agbado) and advises reduced salt/oil intake."
+  }
+]

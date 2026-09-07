@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llama-server-config
+  namespace: sovereign-ai
+  labels:
+    app: sovereign-llm
+data:
+  PORT: "8080"
+  CTX_SIZE: "2048"
+  N_THREADS: "4"
+  HF_REPO: "husseinalamutu/tiny-aya-earth-yoruba-gguf"
+  HF_FILE: "tiny-aya-earth-yoruba-Q4_K_M.gguf"

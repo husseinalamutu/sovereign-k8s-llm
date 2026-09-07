@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sovereign-ai
+  labels:
+    app.kubernetes.io/part-of: sovereign-ai-platform
+    environment: edge-constrained

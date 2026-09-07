@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large model binaries and weight checkpoints (Publish to Hugging Face instead!)
+*.bin
+*.pt
+*.safetensors
+*.gguf
+output_lora/
+tiny-aya-earth-yoruba-lora/
+tiny-aya-earth-yoruba-merged/
+gguf_output/
+llama.cpp/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Mac OS files
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+
+# Temporary logs & outputs
+*.log
