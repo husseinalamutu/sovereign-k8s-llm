@@ -2,7 +2,7 @@
 """
 finetune_lora.py
 Fine-tunes CohereLabs/tiny-aya-earth on the Yoruba split of masakhane/african-ultrachat using QLoRA.
-Supports local execution and Google Colab Pro, with optional direct export to Hugging Face Hub.
+Uses standard, battle-tested Hugging Face transformers.Trainer without fragile external wrappers.
 """
 
 import argparse
@@ -15,11 +15,11 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     TrainingArguments,
+    Trainer,
+    DataCollatorForLanguageModeling,
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from trl import SFTTrainer
 
-# Import our template utility
 try:
     from prompt_template import format_multiturn, format_single_turn
 except ImportError:
@@ -30,9 +30,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description="QLoRA fine-tuning for TinyAya on African languages (Yoruba focus)")
     parser.add_argument("--model_id", type=str, default="CohereLabs/tiny-aya-earth", help="Hugging Face model ID")
     parser.add_argument("--dataset_name", type=str, default="masakhane/african-ultrachat", help="Hugging Face dataset ID")
-    parser.add_argument("--language", type=str, default="yo", help="Language code (e.g. 'yo' for Yoruba, 'ha' for Hausa, 'ig' for Igbo)")
+    parser.add_argument("--language", type=str, default="yo", help="Language code (e.g. 'yo' for Yoruba)")
     parser.add_argument("--output_dir", type=str, default="./output_lora", help="Output directory for LoRA adapter")
-    parser.add_argument("--max_samples", type=int, default=5000, help="Maximum training samples to use")
+    parser.add_argument("--max_samples", type=int, default=3500, help="Maximum training samples to use")
     parser.add_argument("--max_seq_length", type=int, default=1024, help="Maximum sequence length")
     parser.add_argument("--batch_size", type=int, default=4, help="Per-device train batch size")
     parser.add_argument("--gradient_accumulation_steps", type=int, default=4, help="Gradient accumulation steps")
@@ -45,17 +45,12 @@ def parse_args():
 
 
 def prepare_dataset(dataset_name: str, language: str, max_samples: int):
-    """
-    Loads and normalizes the target language conversational dataset.
-    """
     print(f"[*] Loading dataset '{dataset_name}' for language '{language}'...")
     try:
-        # Attempt loading language-specific split/config
         ds = load_dataset(dataset_name, language, split="train")
     except Exception as e:
         print(f"[!] Direct language config load failed ({e}), attempting standard split load...")
         ds = load_dataset(dataset_name, split="train")
-        # Filter by language column if present
         if "language" in ds.column_names:
             ds = ds.filter(lambda x: x["language"].lower() in [language.lower(), f"{language.lower()}_ng", "yoruba"])
         elif "lang" in ds.column_names:
@@ -70,32 +65,6 @@ def prepare_dataset(dataset_name: str, language: str, max_samples: int):
     return ds
 
 
-def formatting_prompts_func(example):
-    """
-    Extracts text from multi-turn or instruction format and applies TinyAya tokens.
-    """
-    texts = []
-    # Determine structure of African-UltraChat records
-    if "messages" in example:
-        for messages in example["messages"]:
-            texts.append(format_multiturn(messages))
-    elif "conversations" in example:
-        for conv in example["conversations"]:
-            texts.append(format_multiturn(conv))
-    elif "instruction" in example and "response" in example:
-        for inst, resp in zip(example["instruction"], example["response"]):
-            texts.append(format_single_turn(inst, resp))
-    elif "prompt" in example and "completion" in example:
-        for p, c in zip(example["prompt"], example["completion"]):
-            texts.append(format_single_turn(p, c))
-    else:
-        # Fallback to text column if pre-formatted
-        if "text" in example:
-            return example["text"]
-        raise ValueError(f"Unknown dataset structure with columns: {list(example.keys())}")
-    return texts
-
-
 def main():
     args = parse_args()
     print("=" * 60)
@@ -108,13 +77,13 @@ def main():
 
     # 1. Tokenizer
     print("[*] Loading tokenizer...")
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_id, token=True, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
 
     # 2. Model with QLoRA quantization
-    compute_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
+    compute_dtype = torch.bfloat16 if (torch.cuda.is_available() and torch.cuda.is_bf16_supported()) else torch.float16
     
     if args.use_4bit and torch.cuda.is_available():
         print(f"[*] Enabling 4-bit BitsAndBytes quantization (compute_dtype={compute_dtype})...")
@@ -133,6 +102,7 @@ def main():
         quantization_config=bnb_config,
         device_map="auto" if torch.cuda.is_available() else "cpu",
         torch_dtype=compute_dtype,
+        token=True,
         trust_remote_code=True,
     )
 
@@ -152,8 +122,26 @@ def main():
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
-    # 4. Dataset
-    dataset = prepare_dataset(args.dataset_name, args.language, args.max_samples)
+    # 4. Dataset formatting and tokenization
+    raw_dataset = prepare_dataset(args.dataset_name, args.language, args.max_samples)
+
+    def format_and_tokenize(batch):
+        texts = []
+        if "messages" in batch:
+            for msgs in batch["messages"]:
+                texts.append(format_multiturn(msgs))
+        elif "conversations" in batch:
+            for conv in batch["conversations"]:
+                texts.append(format_multiturn(conv))
+        elif "instruction" in batch and "response" in batch:
+            for inst, resp in zip(batch["instruction"], batch["response"]):
+                texts.append(format_single_turn(inst, resp))
+        else:
+            texts = batch.get("text", [])
+        return tokenizer(texts, truncation=True, max_length=args.max_seq_length, padding="max_length")
+
+    print("[*] Tokenizing dataset...")
+    tokenized_dataset = raw_dataset.map(format_and_tokenize, batched=True, remove_columns=raw_dataset.column_names)
 
     # 5. Training Arguments
     training_args = TrainingArguments(
@@ -173,15 +161,14 @@ def main():
         report_to="none",
     )
 
-    # 6. Trainer
-    trainer = SFTTrainer(
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+
+    # 6. Standard Trainer
+    trainer = Trainer(
         model=model,
-        train_dataset=dataset,
-        peft_config=lora_config,
-        max_seq_length=args.max_seq_length,
-        tokenizer=tokenizer,
+        train_dataset=tokenized_dataset,
+        data_collator=data_collator,
         args=training_args,
-        formatting_func=formatting_prompts_func,
     )
 
     print("[*] Starting training...")
@@ -195,8 +182,8 @@ def main():
     # 8. Optional Hugging Face Hub Upload
     if args.push_to_hub:
         print(f"[*] Uploading LoRA adapter to Hugging Face Hub: {args.hub_model_id}...")
-        trainer.model.push_to_hub(args.hub_model_id)
-        tokenizer.push_to_hub(args.hub_model_id)
+        trainer.model.push_to_hub(args.hub_model_id, token=True)
+        tokenizer.push_to_hub(args.hub_model_id, token=True)
         print("[+] Adapter successfully published to Hugging Face Hub!")
 
     print("[+] Fine-tuning workflow completed successfully.")
