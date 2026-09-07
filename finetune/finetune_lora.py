@@ -151,7 +151,7 @@ def main():
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         learning_rate=args.learning_rate,
         weight_decay=0.01,
-        warmup_ratio=0.05,
+        warmup_steps=50,
         lr_scheduler_type="cosine",
         logging_steps=10,
         save_strategy="epoch",
