@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
       - name: llama-server
-        image: ghcr.io/ggerganov/llama.cpp:server
+        image: ghcr.io/ggml-org/llama.cpp:server
         args:
           - "--hf-repo"
           - "HusseinAlamutu/tiny-aya-earth-yoruba-gguf"

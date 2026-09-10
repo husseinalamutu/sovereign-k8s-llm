@@ -28,8 +28,8 @@ Status:           Running
 Containers:
   llama-server:
     Container ID:  containerd://b4e39f60f64e29b1...
-    Image:         ghcr.io/ggerganov/llama.cpp:server
-    Image ID:      ghcr.io/ggerganov/llama.cpp@sha256:4d7...
+    Image:         ghcr.io/ggml-org/llama.cpp:server
+    Image ID:      ghcr.io/ggml-org/llama.cpp@sha256:4d7...
     Port:          8080/TCP
     State:         Waiting
       Reason:      CrashLoopBackOff
@@ -50,7 +50,7 @@ Events:
   Type     Reason     Age                From               Message
   ----     ------     ----               ----               -------
   Normal   Scheduled  45s                default-scheduler  Successfully assigned sovereign-ai/sovereign-llm-failing-... to kind-worker
-  Normal   Pulled     41s                kubelet            Container image "ghcr.io/ggerganov/llama.cpp:server" already present on node
+  Normal   Pulled     41s                kubelet            Container image "ghcr.io/ggml-org/llama.cpp:server" already present on node
   Normal   Created    40s                kubelet            Created container llama-server
   Normal   Started    40s                kubelet            Started container llama-server
   Warning  Unhealthy  35s (x2 over 38s)  kubelet            Readiness probe failed: HTTP probe failed with statuscode: 503

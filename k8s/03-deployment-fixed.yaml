@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: llama-server
-        image: ghcr.io/ggerganov/llama.cpp:server
+        image: ghcr.io/ggml-org/llama.cpp:server
         args:
           - "--hf-repo"
           - "$(HF_REPO)"
@@ -62,21 +62,29 @@ spec:
           limits:
             cpu: "2000m"
             memory: "4500Mi"
-        # TUNED READINESS PROBE: Accommodates slow cold starts without false-killing
+        # STARTUP PROBE: Shields container during multi-gigabyte weight download & mmap
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30  # Allows up to 300s (5 mins) for network download & cold start
+        # TUNED READINESS PROBE: Checks serving readiness
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 20
+          initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 10
-        # SEPARATE LIVENESS PROBE: Generous startup window
+          failureThreshold: 3
+        # LIVENESS PROBE: Only activates after startupProbe succeeds
         livenessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 60
           periodSeconds: 15
           timeoutSeconds: 5
           failureThreshold: 3
