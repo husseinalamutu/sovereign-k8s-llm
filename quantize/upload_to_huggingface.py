@@ -76,7 +76,7 @@ containers:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Upload GGUF model to Hugging Face Hub")
-    parser.add_argument("--repo_id", type=str, default="husseinalamutu/tiny-aya-earth-yoruba-gguf", help="Target Hugging Face repository ID")
+    parser.add_argument("--repo_id", type=str, default="HusseinAlamutu/tiny-aya-earth-yoruba-gguf", help="Target Hugging Face repository ID")
     parser.add_argument("--file_path", type=str, default="./gguf_output/tiny-aya-earth-yoruba-Q4_K_M.gguf", help="Path to quantized GGUF file")
     parser.add_argument("--token", type=str, default=os.getenv("HF_TOKEN"), help="Hugging Face access token (or set HF_TOKEN env var)")
     return parser.parse_args()

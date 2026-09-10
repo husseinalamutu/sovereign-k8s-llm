@@ -32,7 +32,7 @@ ENV PORT=8080 \
     CTX_SIZE=2048 \
     N_THREADS=4 \
     MODEL_PATH=/models/tiny-aya-earth-yoruba-Q4_K_M.gguf \
-    HF_REPO=husseinalamutu/tiny-aya-earth-yoruba-gguf \
+    HF_REPO=HusseinAlamutu/tiny-aya-earth-yoruba-gguf \
     HF_FILE=tiny-aya-earth-yoruba-Q4_K_M.gguf
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

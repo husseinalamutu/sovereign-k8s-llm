@@ -35,7 +35,7 @@ spec:
             echo "[*] Installing huggingface_hub..."
             pip install -q huggingface_hub
             echo "[*] Downloading tiny-aya-earth-yoruba-Q4_K_M.gguf to shared volume..."
-            python3 -c "from huggingface_hub import hf_hub_download; hf_hub_download(repo_id='husseinalamutu/tiny-aya-earth-yoruba-gguf', filename='tiny-aya-earth-yoruba-Q4_K_M.gguf', local_dir='/models')"
+            python3 -c "from huggingface_hub import hf_hub_download; hf_hub_download(repo_id='HusseinAlamutu/tiny-aya-earth-yoruba-gguf', filename='tiny-aya-earth-yoruba-Q4_K_M.gguf', local_dir='/models')"
             echo "[+] Model download complete. Files in /models:"
             ls -lh /models
         volumeMounts:

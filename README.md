@@ -8,7 +8,7 @@
 > **Case Study & Demonstration Codebase for KubeCon + CloudNativeCon Europe 2027 (Barcelona)**  
 > **Speaker:** Hussein Alamutu (Google Cloud Certified Professional Cloud Architect, DevOps / Platform Engineer)  
 > **Track:** AI Inference and Infrastructure  
-> **Hugging Face Model Registry:** [`husseinalamutu/tiny-aya-earth-yoruba-gguf`](https://huggingface.co/husseinalamutu/tiny-aya-earth-yoruba-gguf)
+> **Hugging Face Model Registry:** [`HusseinAlamutu/tiny-aya-earth-yoruba-lora`](https://huggingface.co/HusseinAlamutu/tiny-aya-earth-yoruba-lora)
 
 ---
 
@@ -168,7 +168,7 @@ sovereign-k8s-llm/
 Open [`finetune/colab_tiny_aya_yoruba.ipynb`](finetune/colab_tiny_aya_yoruba.ipynb) in Google Colab Pro. With an A100 or T4 GPU, run all cells to:
 - Evaluate baseline Yoruba outputs.
 - Train the QLoRA adapter on the Yoruba split of `african-ultrachat` (~45 mins).
-- Merge weights and export `husseinalamutu/tiny-aya-earth-yoruba-lora` to Hugging Face Hub.
+- Merge weights and export `HusseinAlamutu/tiny-aya-earth-yoruba-lora` to Hugging Face Hub.
 
 ### 2. Quantize to GGUF (Q4_K_M)
 ```bash

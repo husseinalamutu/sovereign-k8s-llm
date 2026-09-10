@@ -9,5 +9,5 @@ data:
   PORT: "8080"
   CTX_SIZE: "2048"
   N_THREADS: "4"
-  HF_REPO: "husseinalamutu/tiny-aya-earth-yoruba-gguf"
+  HF_REPO: "HusseinAlamutu/tiny-aya-earth-yoruba-gguf"
   HF_FILE: "tiny-aya-earth-yoruba-Q4_K_M.gguf"

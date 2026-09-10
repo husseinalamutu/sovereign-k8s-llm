@@ -35,7 +35,7 @@ spec:
         image: ghcr.io/ggerganov/llama.cpp:server
         args:
           - "--hf-repo"
-          - "husseinalamutu/tiny-aya-earth-yoruba-gguf"
+          - "HusseinAlamutu/tiny-aya-earth-yoruba-gguf"
           - "--hf-file"
           - "tiny-aya-earth-yoruba-Q4_K_M.gguf"
           - "-c"

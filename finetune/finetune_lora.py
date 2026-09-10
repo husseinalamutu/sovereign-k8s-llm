@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--learning_rate", type=float, default=2e-4, help="Learning rate")
     parser.add_argument("--num_train_epochs", type=int, default=2, help="Number of training epochs")
     parser.add_argument("--push_to_hub", action="store_true", help="Push trained adapter to Hugging Face Hub")
-    parser.add_argument("--hub_model_id", type=str, default="husseinalamutu/tiny-aya-earth-yoruba-lora", help="Hugging Face Hub repository ID")
+    parser.add_argument("--hub_model_id", type=str, default="HusseinAlamutu/tiny-aya-earth-yoruba-lora", help="Hugging Face Hub repository ID")
     parser.add_argument("--use_4bit", action="store_true", default=True, help="Use 4-bit quantization (QLoRA)")
     return parser.parse_args()
 
